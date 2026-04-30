@@ -16,7 +16,6 @@ await pool.query(`
         password_hash TEXT NOT NULL
         )
 `);
-console.log('user table created')
 
 await pool.query(`
     CREATE TABLE events (
@@ -39,44 +38,66 @@ await pool.query(`
             UNIQUE      (user_id, event_id)
         )
 `);
-console.log('table created')
-    const hashedPassword = await bcrypt.hash('password123', SALT_ROUNT)
 
-    await pool.query(`
+    const ronyHash = await bcrypt.hash('password123', SALT_ROUNT)
+    const rafiHash = await bcrypt.hash('password1234', SALT_ROUNT)
+    const rayHash = await bcrypt.hash('password12345', SALT_ROUNT)
+
+  const { rows: users } = await pool.query(`
             INSERT INTO users (username, password_hash)
             VALUES 
-            ('rony_yamal', $1),
-            ('rafi_rivera', $1),
-            ('ray_debroyn', $1)
-            `, [hashedPassword]
+            ('rony', $1),
+            ('rafi', $2),
+            ('ray', $3)
+            RETURNING user_id, username
+            `, [ronyHash, rafiHash, rayHash]
         );
+        
+        const [rony, rafi, ray] = users;
 
 
-    await pool.query(`
+     const { rows: events } = await pool.query(`
             INSERT INTO events (title, description, date, event_location, event_type, max_capacity, user_id)
             VALUES 
-            ('5K Morning Run', 'A community morning run through Central Park', '2026-05-01', 'New York', 'sports', 500, 1),
-            ('Basketball Tournament', '3v3 basketball tournament with prizes for the winners', '2026-05-02', 'New Jersey', 'sports', 100, 2),
-            ('Soccer Pickup Game', 'Casual soccer game open to all skill levels', '2026-05-03', 'Florida', 'sports', 22, 3),
-            ('Tennis Open', 'Amateur tennis tournament for all age groups', '2026-05-04', 'New York', 'sports', 64, 1),
-            ('Yoga and Swim', 'Morning yoga followed by a group swim session', '2026-05-05', 'New Jersey', 'sports', 30, 2)
-        `);
+            ('5K Morning Run', 'A community morning run through Central Park', '2026-05-01', 'New York', 'sports', 500, $1),
+            ('Basketball Tournament', '3v3 basketball tournament with prizes for the winners', '2026-05-02', 'New Jersey', 'sports', 100, $2),
+            ('Soccer Pickup Game', 'Casual soccer game open to all skill levels', '2026-05-03', 'Florida', 'sports', 22, $3),
+            ('Tennis Open', 'Amateur tennis tournament for all age groups', '2026-05-04', 'New York', 'sports', 64, $1),
+            ('Yoga and Swim', 'Morning yoga followed by a group swim session', '2026-05-05', 'New Jersey', 'sports', 30, $2)
+            RETURNING event_id, title
+        `, [rony.user_id, rafi.user_id, ray.user_id]);
+
+        const [run, basketball, soccer, tennis, yoga] = events
 
         await pool.query(`
                 INSERT INTO rsvps (user_id, event_id)
                 VALUES 
-                (1, 2),
-                (1, 3),
-                (2, 1),
-                (3, 1),
-                (3, 4),
-                (2, 5)
-            `);
-            console.log('table inserted')
-
-            console.log('Connecting to database:', process.env.PG_DATABASE);
-
-
+                ($1, $4),
+                ($1, $5),
+                ($2, $4),
+                ($2, $6),
+                ($3, $5),
+                ($3, $7)
+                `, [
+                    rony.user_id,        // $1
+                    rafi.user_id,        // $2
+                    ray.user_id,         // $3
+                    run.event_id,        // $4
+                    basketball.event_id, // $5
+                    soccer.event_id,     // $6
+                    tennis.event_id      // $7
+                ]);
+            return { users, events };
 };
 
-seed();
+seed()
+  .then(({ users, events }) => {
+    console.log('Database seeded successfully.');
+    console.log(`  Users:     ${users.map((u) => u.username).join(', ')}`);
+    console.log(`  events: ${events.map((e) => e.title).join(', ')}`);
+  })
+  .catch((err) => {
+    console.error('Error seeding database:', err);
+    process.exit(1);
+  })
+  .finally(() => pool.end());
