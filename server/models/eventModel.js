@@ -5,7 +5,15 @@ const SALT_ROUNDS = 8;
 
 module.exports.list = async () => {
     const query = `
-        SELECT events.event_id, events.title, events.description, events.date, events.event_location, events.event_type, events.max_capacity, events.user_id, users.user_id
+        SELECT events.event_id,
+        events.title,
+        events.description, 
+        events.date, 
+        events.event_location, 
+        events.event_type, 
+        events.max_capacity, 
+        events.user_id, 
+        users.user_id
         FROM events
         INNER JOIN users ON users.user_id = events.user_id
         ORDER BY events.event_id
@@ -19,7 +27,6 @@ module.exports.listByUser = async (user_id) => {
         SELECT event_id, title, description, date, event_location, event_type, max_capacity, user_id
         FROM events
         WHERE user_id = $1
-        ORDER BY event_id
          `;
     const { rows }= await pool.query(query, [user_id]);
     return rows;
@@ -29,6 +36,7 @@ module.exports.create = async (user_id, title, description, date, event_location
     const query = `
         INSERT INTO events (user_id, title, description, date, event_location, event_type, max_capacity)
         VALUES ($1, $2, $3, $4, $5, $6, $7)
+        RETURNING *
     `;
     const { rows } = await pool.query(query, [user_id, title, description, date, event_location, event_type, max_capacity]);
     return rows[0];
@@ -37,7 +45,8 @@ module.exports.create = async (user_id, title, description, date, event_location
 module.exports.find = async (event_id) => {
     const query = `
         SELECT event_id,
-        title, description, 
+        title, 
+        description, 
         date,
         event_location,
         event_type, 
@@ -71,8 +80,6 @@ module.exports.destroy = async (event_id) => {
     const query = `
         DELETE FROM events
         WHERE event_id = $1
-        RETURNING event_id, title, description, date, event_location, event_type, max_capacity, user_id
     `;
-    const { rows } = await pool.query(query, [event_id]);
-    return rows[0] || null;
+   await pool.query(query, [event_id]);
 };
