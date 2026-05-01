@@ -40,7 +40,7 @@ module.exports.validatedPassword = async (username, password) => {
     const isValid = await bcrypt.compare(password, user.password_hash);
     if (!isValid) return null;
 
-    return { user_id: user.user_id, username: user.username};
+    return { user_id: user.user_id, username: user.username };
 }; 
 
 module.exports.update = async (user_id, password) => {
