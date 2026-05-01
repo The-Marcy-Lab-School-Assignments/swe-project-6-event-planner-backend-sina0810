@@ -1,7 +1,7 @@
 const bcrypt = require('bcrypt')
 const pool = require('./pool')
 
-const SALT_ROUNT = 8
+const SALT_ROUNDS = 8
 // /c event_planner_db
 const seed = async () => {
     await pool.query('DROP TABLE IF EXISTS rsvps');
@@ -30,6 +30,7 @@ await pool.query(`
         user_id         INTEGER REFERENCES users(user_id) ON DELETE CASCADE     
     )
 `);
+console.log('user table created')
 
 await pool.query(`
         CREATE TABLE rsvps (
@@ -39,8 +40,9 @@ await pool.query(`
             UNIQUE      (user_id, event_id)
         )
 `);
+console.log('user table created')
 console.log('table created')
-    const hashedPassword = await bcrypt.hash('password123', SALT_ROUNT)
+    const hashedPassword = await bcrypt.hash('password123', SALT_ROUNDS)
 
     await pool.query(`
             INSERT INTO users (username, password_hash)
@@ -74,9 +76,15 @@ console.log('table created')
             `);
             console.log('table inserted')
 
-            console.log('Connecting to database:', process.env.PG_DATABASE);
+            console.log('Connecting to database:');
 
 
 };
 
-seed();
+
+seed()
+  .catch((err) => {
+    console.error('Error seeding database:', err);
+    process.exit(1);
+  })
+  .finally(() => pool.end());

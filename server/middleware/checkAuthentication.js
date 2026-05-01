@@ -1,7 +1,7 @@
 const checkAuthentication = (req, res, next) => {
-    const { userId } = req.session;
+    const { user_id } = req.session;
 
-    if (!userId){
+    if (!user_id){
         return res.status(401).send({ message: 'You must be logged in to do that.'})
     }
     next();
