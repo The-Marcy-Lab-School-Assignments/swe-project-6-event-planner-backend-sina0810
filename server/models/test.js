@@ -1,9 +1,9 @@
 require('dotenv').config();
-const userModel = require('./userModel');
+const eventModel = require('./eventModel');
 
 const test = async () => {
       // test listByEvent
-    console.log(await userModel.list());
+    console.log(await eventModel.list());
 
     // test create
     // const newRsvp = await rsvpModel.create(2, 3);

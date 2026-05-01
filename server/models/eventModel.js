@@ -4,12 +4,12 @@ const pool = require('../db/pool');
 const SALT_ROUNDS = 8;
 
 module.exports.list = async () => {
-    const query = `
+  const query = `
         SELECT events.event_id,
         events.title,
         events.description, 
         events.date, 
-        events.event_location, 
+        events.location, 
         events.event_type, 
         events.max_capacity, 
         events.user_id, 
@@ -18,49 +18,73 @@ module.exports.list = async () => {
         INNER JOIN users ON users.user_id = events.user_id
         ORDER BY events.event_id
         `;
-    const { rows } = await pool.query(query);
-    return rows;
+  const { rows } = await pool.query(query);
+  return rows;
 };
 
 module.exports.listByUser = async (user_id) => {
-    const query = `
-        SELECT event_id, title, description, date, event_location, event_type, max_capacity, user_id
+  const query = `
+        SELECT event_id, title, description, date, location, event_type, max_capacity, user_id
         FROM events
         WHERE user_id = $1
          `;
-    const { rows }= await pool.query(query, [user_id]);
-    return rows;
+  const { rows } = await pool.query(query, [user_id]);
+  return rows;
 };
 
-module.exports.create = async (user_id, title, description, date, event_location, event_type, max_capacity) => {
-    const query = `
-        INSERT INTO events (user_id, title, description, date, event_location, event_type, max_capacity)
+module.exports.create = async (
+  user_id,
+  title,
+  description,
+  date,
+  location,
+  event_type,
+  max_capacity,
+) => {
+  const query = `
+        INSERT INTO events (user_id, title, description, date, location, event_type, max_capacity)
         VALUES ($1, $2, $3, $4, $5, $6, $7)
         RETURNING *
     `;
-    const { rows } = await pool.query(query, [user_id, title, description, date, event_location, event_type, max_capacity]);
-    return rows[0];
+  const { rows } = await pool.query(query, [
+    user_id,
+    title,
+    description,
+    date,
+    location,
+    event_type,
+    max_capacity,
+  ]);
+  return rows[0];
 };
 
 module.exports.find = async (event_id) => {
-    const query = `
+  const query = `
         SELECT event_id,
         title, 
         description, 
         date,
-        event_location,
+        location,
         event_type, 
         max_capacity,
         user_id
         FROM events
         WHERE event_id = $1
     `;
-    const { rows } = await pool.query(query, [event_id]);
-    return rows[0] || null;
+  const { rows } = await pool.query(query, [event_id]);
+  return rows[0] || null;
 };
 
-module.exports.update = async (event_id, title, description, date, event_location, event_type, max_capacity) => {
-    const query = `
+module.exports.update = async (
+  event_id,
+  title,
+  description,
+  date,
+  location,
+  event_type,
+  max_capacity,
+) => {
+  const query = `
         INSERT INTO events
         SET 
         title = $1,
@@ -70,16 +94,24 @@ module.exports.update = async (event_id, title, description, date, event_locatio
         event_type = $5,
         max_capacity = $6
         WHERE event_id = $7
-        RETURNING event_id, title, description, date, event_location, event_type, max_capacity
+        RETURNING event_id, title, description, date, location, event_type, max_capacity
     `;
-    const { rows } = await pool.query(query, [title, description, date, event_location, event_type, max_capacity, event_id]);
-    return rows[0] || null;
+  const { rows } = await pool.query(query, [
+    title,
+    description,
+    date,
+    location,
+    event_type,
+    max_capacity,
+    event_id,
+  ]);
+  return rows[0] || null;
 };
 
 module.exports.destroy = async (event_id) => {
-    const query = `
+  const query = `
         DELETE FROM events
         WHERE event_id = $1
     `;
-   await pool.query(query, [event_id]);
+  await pool.query(query, [event_id]);
 };
