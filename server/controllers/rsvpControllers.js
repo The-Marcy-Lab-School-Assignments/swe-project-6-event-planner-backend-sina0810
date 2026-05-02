@@ -3,30 +3,34 @@ const rsvpModel = require('../models/rsvpModel');
 
 const createRsvp = async (req, res, next) => {
     try {
-        const listRsvp = await rsvpModel.create(req.session.userId, req.params.event_id);
-         res.status(201).send(listRsvp)
+        const rsvp = await rsvpModel.create(req.session.user_id, req.params.event_id);
+        res.status(201).send(rsvp);
     } catch (err){
-        next (err)
+        if (err.code === '23505') {
+            return res.status(409).send({ message: 'You have already RSVPed to this event.' });
+        }
+        next(err);
     }
 };
 
 
 const destroy = async (req, res, next) => {
     try {
-        const deleteRsvp = await rsvpModel.deleteRsvps(req.session.userId, req.params.event_id);
-         res.sendStatus(deleteRsvp)
+        const deleteRsvp = await rsvpModel.deleteRsvps(req.session.user_id, req.params.event_id);
+         res.sendStatus(204)
     } catch(err) {
         next (err)
     }
 };
 
+
+
 const listByUser = async (req, res, next) => {
     try {
-        const listRsvpByEvent = await rsvpModel.listByEvent(req.params.user_id);
-            res.send(listRsvpByEvent) 
+        const rsvps = await rsvpModel.listByUser(req.params.user_id);
+        res.send(rsvps);
     } catch(err) {
-        next(err)
+        next(err);
     }
 };
-
 module.exports = { createRsvp, destroy, listByUser};

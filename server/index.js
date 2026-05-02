@@ -73,8 +73,8 @@ app.delete('/api/users/:user_id', checkAuthentication, deleteUser);
 
 // rsvp routes
 app.get('/api/users/:user_id/rsvps', checkAuthentication, listByUser);
-app.post('/api/users/:event_id/rsvps', checkAuthentication, createRsvp);
-app.delete('/api/events/:event_id', checkAuthentication, destroy);
+app.post('/api/events/:event_id/rsvps', checkAuthentication, createRsvp);
+app.delete('/api/events/:event_id/rsvps', checkAuthentication, destroy);
 
 // Notice that this error handler has **four** parameters.
 const handleError = (err, req, res, next) => {

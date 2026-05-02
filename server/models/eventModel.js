@@ -13,7 +13,7 @@ module.exports.list = async () => {
         events.event_type, 
         events.max_capacity, 
         events.user_id, 
-        users.user_id
+        users.username
         FROM events
         INNER JOIN users ON users.user_id = events.user_id
         ORDER BY events.event_id
@@ -85,12 +85,12 @@ module.exports.update = async (
   max_capacity,
 ) => {
   const query = `
-        INSERT INTO events
+        UPDATE events
         SET 
         title = $1,
         description = $2,
         date = $3,
-        event_location = $4,
+        location = $4,
         event_type = $5,
         max_capacity = $6
         WHERE event_id = $7

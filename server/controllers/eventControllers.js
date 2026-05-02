@@ -12,7 +12,7 @@ const listEvent = async (req, res, next) => {
 
 const listUserEvents = async (req, res, next) => {
     try{
-        const user_id = req.body;
+        const user_id = req.session.user_id;
         const events = await eventModel.listByUser(user_id);
         res.send(events)
 
@@ -24,12 +24,16 @@ const listUserEvents = async (req, res, next) => {
 
 const createEvents = async (req, res, next) => {
     try {
+                console.log('req.body:', req.body);
+        console.log('req.session:', req.session);
+        
+
         const { title, description, date, location, event_type, max_capacity } = req.body;
-        if (!title || !description || !date || !location || !event_type || !max_capacity) {
-        return res.status(400).send({ error: 'title, description, date, location, event_type, max_capacity are required!' });
+        if (!title || !date || !location || !event_type || !max_capacity) {
+        return res.status(400).send({ error: 'All fields are required!'});
     } 
 
-    const event = await eventModel.create(title, description, date, location, event_type, max_capacity, req.session.user_id);
+    const event = await eventModel.create(req.session.user_id, title, description, date, location, event_type, max_capacity);
     res.status(201).send(event);
 } catch (err) {
         next(err)
